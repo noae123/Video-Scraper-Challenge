@@ -1,0 +1,26 @@
+{
+  "name": "video-scraper-challenge",
+  "version": "1.0.0",
+  "description": "Home Assignment by minute.ly",
+  "main": "part2/main.js",
+  "scripts": {
+    "start": "node part2/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noae123/Video-Scraper-Challenge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/noae123/Video-Scraper-Challenge/issues"
+  },
+  "homepage": "https://github.com/noae123/Video-Scraper-Challenge#readme",
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.3",
+    "jsonld": "^8.3.3"
+  }
+}

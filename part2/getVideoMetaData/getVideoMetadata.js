@@ -1,4 +1,4 @@
-import { creatVideoObject, findAuther, downloadVideoObject, downloadNewsArticle, getVideoTitle } from './metadaUtills.js';
+import { creatVideoObject, downloadVideoObject, downloadNewsArticle } from './metadaUtills.js';
 
 export async function getVideoMetadata(item) {
     let videoPath;

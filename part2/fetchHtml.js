@@ -1,4 +1,4 @@
-export async function fetchHtml(url, headers) {
+export async function fetchHtml(url) {
     let res;
     if (url.includes("mako")) {
         res = await fetch(url, {

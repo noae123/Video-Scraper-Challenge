@@ -1,3 +1,5 @@
+import { getVideoMetadata } from './getVideoMetadata.js';
+
 export async function extractVideoMetadataFromHTML(html) {
     const regex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
     const matches = [...html.matchAll(regex)];
@@ -15,17 +17,9 @@ export async function extractVideoMetadataFromHTML(html) {
             const items = Array.isArray(jsonData) ? jsonData : [jsonData];
 
             for (const item of items) {
-            if (item['@type'] === 'VideoObject') {
-                return item;
-            }
-            if (item['@type'] === 'NewsArticle' && item.hasOwnProperty('video')) {
-                if (Array.isArray(item.video)) {
-                const videoObj = item.video.find(v => v['@type'] === 'VideoObject');
-                if (videoObj) return videoObj;
-                } else if (item.video && item.video['@type'] === 'VideoObject') {
-                return item.video;
+                if ((item['@type'] === 'VideoObject') || (item['@type'] === 'NewsArticle' && item.hasOwnProperty('video'))) {
+                    return await getVideoMetadata(item, item['@type']);
                 }
-            }
             }
         } catch (e) {
             continue;

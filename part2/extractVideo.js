@@ -1,13 +1,17 @@
-import { getVideoMetadata } from './getVideoMetadata.js';
+import { getVideoMetadata } from './getVideoMetaData/getVideoMetadata.js';
 
-export async function extractVideoMetadataFromHTML(html) {
-    const regex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+export function findLdJson(html){
+    const regex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi; // iknow this is not the best practice since this part in other realiable sites might have unwanted text
     const matches = [...html.matchAll(regex)];
 
     if (!matches) {
-        return 'could not find any JSON-LD script tags';
+       throw new Error("no ld json were found!");
     }
 
+    return matches;
+}
+
+export async function findVideoItem(matches){
     for (let i = 0; i < matches.length; i++) {
         let data = matches[i][1];
 
@@ -16,13 +20,15 @@ export async function extractVideoMetadataFromHTML(html) {
 
             const items = Array.isArray(jsonData) ? jsonData : [jsonData];
 
-            for (const item of items) {
-                if ((item['@type'] === 'VideoObject') || (item['@type'] === 'NewsArticle' && item.hasOwnProperty('video'))) {
-                    return await getVideoMetadata(item, item['@type']);
-                }
+            const videoObjectPromise = await Promise.allSettled(items.map(getVideoMetadata));
+            const videoObject = (videoObjectPromise.filter(p => p.status === 'fulfilled').map(r => r.value));
+
+            if (videoObject.length > 0){
+                return videoObject;
             }
+
         } catch (e) {
-            continue;
+            throw new Error("no VideoObject items were found nor NewsArticle with video");
         }
     }
-};
+}

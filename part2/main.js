@@ -1,10 +1,12 @@
 import { CNN, MAKO, FOX_SPORT, CBS_SPORTS } from './consts.js';
-import {extractVideoMetadataFromHTML} from './extractVideo.js';
+import { getVideoObject } from './mainLogicProcess.js';
 
-async function main(url) {
-    const res = await fetch(url);
-    const html = await res.text();
-    const videoObject = await extractVideoMetadataFromHTML(html);
+
+async function main(urlList) {
+    const videoObjects = await Promise.allSettled(urlList.map(getVideoObject));
+    console.log(videoObjects.filter(p => p.status === 'fulfilled').map(r => r.value));
+    console.error(videoObjects.filter(p=>p.status === 'rejected').map(r => r.reason));
 }
 
-main(FOX_SPORT);
+//todo make a clean up files
+main([CNN, MAKO, FOX_SPORT, CBS_SPORTS]);

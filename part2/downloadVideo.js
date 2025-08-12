@@ -3,39 +3,41 @@ import { writeFileSync } from 'fs';
 import fetch from 'node-fetch';
 
 export async function downloadVideo(videoUrl, videoTitle) {
-    const outputFile = videoTitle.concat('.mp4').replace(/[<>:"/\\|?*]/g, '').trim()
+    const outputFile = videoTitle.concat('.mp4').replace(/[<>:"/\\|?*]/g, '').trim();
 
     if (videoUrl.endsWith('.mp4')) {
         const res = await fetch(videoUrl);
         const buffer = Buffer.from(await res.arrayBuffer());
         writeFileSync(outputFile, buffer);
+        return outputFile;
     } else if (videoUrl.endsWith('.m3u8')) {
         const { spawn } = await import('child_process');
-        const ffmpeg = spawn('ffmpeg', [
-            '-i', videoUrl,
-            '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc',
-            outputFile
-        ]);
+        return await new Promise((resolve, reject) => {
+            const ffmpeg = spawn('ffmpeg', [
+                '-i', videoUrl,
+                '-c', 'copy',
+                '-bsf:a', 'aac_adtstoasc',
+                outputFile
+            ]);
 
-        ffmpeg.stdout.on('data', (data) => {
-            console.log(`ffmpeg: ${data}`);
+            ffmpeg.stdout.on('data', (data) => {
+                console.log(`ffmpeg: ${data}`);
+            });
+
+            ffmpeg.stderr.on('data', (data) => {
+                console.error(`ffmpeg error: ${data}`);
+            });
+
+            ffmpeg.on('close', (code) => {
+                if (code === 0) {
+                    console.log(`Downloaded and converted to ${outputFile}`);
+                    resolve(outputFile);
+                } else {
+                    reject(new Error(`ffmpeg exited with code ${code}`));
+                }
+            });
         });
-
-        ffmpeg.stderr.on('data', (data) => {
-            console.error(`ffmpeg error: ${data}`);
-        });
-
-        ffmpeg.on('close', (code) => {
-            if (code === 0) {
-                console.log(`Downloaded and converted to ${outputFile}`);
-            } else {
-                console.error(`ffmpeg exited with code ${code}`);
-            }
-        });
-
-        return outputFile;
-    } else{
+    } else {
         console.error('Unsupported video format. Only .mp4 and .m3u8 are supported.');
         return;
     }
@@ -66,6 +68,8 @@ export async function findEmbdedVideoUrl(url) {
 
     await new Promise(resolve => setTimeout(resolve, 15000));
 
+    await browser.close();
+
     if (m3u8Urls.length === 0) {
         console.log('No M3U8 URL found.');
     } else {
@@ -77,6 +81,6 @@ export async function findEmbdedVideoUrl(url) {
         return m3u8Url;
     }
 
-    await browser.close();
+    
 }
 
